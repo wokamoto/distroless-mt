@@ -20,7 +20,12 @@ RUN set -eux; \
     microdnf clean all
 RUN set -eux; \
     mkdir -p /mysql-client/bin /mysql-client/include /mysql-client/lib; \
-    cp /usr/bin/mysql_config /mysql-client/bin/ 2>/dev/null || true; \
+    if [ -x /usr/bin/mysql_config-64 ]; then \
+      cp /usr/bin/mysql_config-64 /mysql-client/bin/; \
+      ln -sf mysql_config-64 /mysql-client/bin/mysql_config; \
+    else \
+      cp /usr/bin/mysql_config /mysql-client/bin/ 2>/dev/null || true; \
+    fi; \
     cp -r /usr/include/mysql /mysql-client/include/ 2>/dev/null || true; \
     cp /usr/lib64/mysql/libmysqlclient* /mysql-client/lib/ 2>/dev/null || \
     cp /usr/lib64/libmysqlclient* /mysql-client/lib/ 2>/dev/null || \
@@ -38,7 +43,7 @@ RUN set -eux; \
     cp -r /opt/mysql-client/include/mysql /usr/include/; \
     mkdir -p /usr/lib64/mysql; \
     cp -a /opt/mysql-client/lib/* /usr/lib64/mysql/ 2>/dev/null || cp -a /opt/mysql-client/lib/* /usr/lib64/ 2>/dev/null || true; \
-    cp -a /opt/mysql-client/bin/mysql_config /usr/local/bin/
+    cp /opt/mysql-client/bin/mysql_config /usr/local/bin/
 
 # Build dependencies (no MySQL APT repo; we use libs from mysql-client stage)
 RUN set -eux; \
