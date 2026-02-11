@@ -1,0 +1,14 @@
+/.vscode
+/data/*
+/logs/*
+.DS_Store
+/buildtest
+/.mt-extract
+
+# MovableType ソース（ライセンスの都合でリポジトリに含めない）
+/files/movabletype/*.zip
+/www/movabletype/mt-static/*
+/www/movabletype/mt-templates/*
+/www/movabletype/plugins/*
+
+!.gitkeep
