@@ -72,7 +72,7 @@ services:
       start_period: 30s
     volumes:
       - ${MYSQL_INITDB_DIR-./config/initdb}:/docker-entrypoint-initdb.d
-      - ${MYSQL_DATA_DIR-./data/mysql}:/var/lib/mysql
+      - dbdata:/var/lib/mysql
       - ${MYSQL_LOG_DIR-./logs/mysql}:/var/log/mysql
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
@@ -107,7 +107,7 @@ services:
     ports:
       - "${HOST_MACHINE_MAILPIT_PORT}:8025"
     volumes:
-      - ./data/mailpit:/data
+      - mailpitdata:/data
     environment:
       TZ: Asia/Tokyo
       MP_MAX_MESSAGES: 5000
@@ -121,3 +121,5 @@ networks:
 
 volumes:
   mtdata:
+  dbdata:
+  mailpitdata:
