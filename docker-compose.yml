@@ -99,7 +99,6 @@ services:
       - "${HOST_MACHINE_PMA_SECURE_PORT}:443"
     volumes:
       - /sessions
-      - ${PHP_INI-./config/php/php.ini}:/usr/local/etc/php/conf.d/php-phpmyadmin.ini
   mail:
     image: axllent/mailpit:latest
     container_name: "${COMPOSE_PROJECT_NAME}-mail"
