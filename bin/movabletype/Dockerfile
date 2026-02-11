@@ -125,8 +125,8 @@ COPY ./files/movabletype/${MT_SOURCE_ZIP} /tmp/mt.zip
 
 # Copy perl 5.42, create directories, config, and expand Movable Type
 RUN set -eux; \
-    mkdir -p /opt /opt/var/www/html /opt/var/www/movabletype; \
-    unzip -q /tmp/mt.zip -d /tmp/mt; \
+    mkdir -p /opt /opt/var/www/html /opt/var/www/movabletype && \
+    unzip -q /tmp/mt.zip -d /tmp/mt && \
     subdir=$(find /tmp/mt -maxdepth 1 -mindepth 1 -type d | head -1); \
     if [ -n "$subdir" ]; then cp -a "$subdir"/. /opt/var/www/movabletype/; else cp -a /tmp/mt/. /opt/var/www/movabletype/; fi; \
     rm -rf /tmp/mt /tmp/mt.zip; \

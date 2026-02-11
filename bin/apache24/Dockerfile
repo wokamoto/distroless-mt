@@ -10,7 +10,7 @@ RUN set -eux; \
 
 RUN set -eux; \
     mkdir -p /opt/etc; \
-    mkdir -p /opt/var/www/html; \
+    mkdir -p /opt/var/www/html/htdocs; \
     cp -a --parents /usr/local/apache2 /opt; \
     cp -a --parents /etc/passwd /opt; \
     cp -a --parents /etc/group /opt; \
