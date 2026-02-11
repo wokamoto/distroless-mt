@@ -22,7 +22,6 @@
 - `www/mt-config.cgi`: MT 設定（コンテナにマウント）
 - `www/movabletype/mt-static`、`www/movabletype/plugins`: MT の静的ファイルとプラグイン（`make prepare-mt` で展開）
 - `logs/movabletype/`: MT エラーログ（コンテナからマウント）
-- `config/php/php.ini`: phpMyAdmin 用 PHP 設定
 - `config/httpd/httpd.conf`、`config/httpd/conf.d/default.conf`: Apache 設定（`WEBSERVER=apache24` 時）
 - `config/nginx/nginx.conf`、`config/nginx/conf.d/`: Nginx 設定
 - `config/nginx/conf.d/default-ssl.conf`: 任意の HTTPS サーバーブロック雛形

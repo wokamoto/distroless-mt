@@ -22,7 +22,6 @@
 - `www/mt-config.cgi`: MT config (mounted into the container)
 - `www/movabletype/mt-static`, `www/movabletype/plugins`: MT static assets and plugins (populated by `make prepare-mt`)
 - `logs/movabletype/`: MT error log (mounted from the container)
-- `config/php/php.ini`: PHP configuration for phpMyAdmin
 - `config/httpd/httpd.conf`, `config/httpd/conf.d/default.conf`: Apache configuration (when `WEBSERVER=apache24`)
 - `config/nginx/nginx.conf`, `config/nginx/conf.d/`: Nginx configuration
 - `config/nginx/conf.d/default-ssl.conf`: optional HTTPS server block template
