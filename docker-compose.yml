@@ -6,7 +6,7 @@ services:
       args:
         MT_SOURCE_ZIP: ${MT_SOURCE_ZIP:-MT-8.8.2.zip}
     image: ${COMPOSE_PROJECT_NAME}:movabletype
-    container_name: "${COMPOSE_PROJECT_NAME}-movabletype"
+    container_name: "mt-movabletype"
     restart: "always"
     expose:
       - "9000"
@@ -37,7 +37,7 @@ services:
       args:
         TIME_ZONE: ${TIME_ZONE-Asia/Tokyo}
     image: ${COMPOSE_PROJECT_NAME}:${WEBSERVER-nginx}
-    container_name: "${COMPOSE_PROJECT_NAME}-${WEBSERVER-nginx}"
+    container_name: "mt-${WEBSERVER-nginx}"
     restart: "always"
     depends_on:
       - movabletype
@@ -56,7 +56,7 @@ services:
       context: .
       dockerfile: ./bin/${DATABASE}/Dockerfile
     image: ${COMPOSE_PROJECT_NAME}:${DATABASE}
-    container_name: "${COMPOSE_PROJECT_NAME}-${DATABASE}"
+    container_name: "mt-${DATABASE}"
     restart: "always"
     expose:
       - "3306"
@@ -81,7 +81,7 @@ services:
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
   phpmyadmin:
     image: phpmyadmin
-    container_name: "${COMPOSE_PROJECT_NAME}-phpmyadmin"
+    container_name: "mt-phpmyadmin"
     depends_on:
       - database
     environment:
@@ -101,7 +101,7 @@ services:
       - /sessions
   mail:
     image: axllent/mailpit:latest
-    container_name: "${COMPOSE_PROJECT_NAME}-mail"
+    container_name: "mt-mail"
     expose:
       - "1025"
     ports:

@@ -35,7 +35,7 @@ RUN set -eux; \
 FROM gcr.io/distroless/base-debian13
 
 # ローカル: php:9000 / ECS Fargate: 127.0.0.1:9000
-# 例: docker build --build-arg DEFAULT_CONF=conf.d.ecs/default.conf -f bin/apache24/Dockerfile .
+# 例: docker build --build-arg DEFAULT_CONF=conf.d.ecs/default.conf -f bin/httpd/Dockerfile .
 ARG DEFAULT_CONF=conf.d/default.conf
 
 COPY --from=builder /opt /

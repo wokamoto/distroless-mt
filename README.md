@@ -6,7 +6,7 @@
 - The stack includes MySQL, phpMyAdmin, and Mailpit.
 
 ## Tech Stack
-- Apache HTTP Server 2.4 (`bin/apache24/Dockerfile`)
+- Apache HTTP Server 2.4 (`bin/httpd/Dockerfile`)
 - Nginx 1.29 (`bin/nginx/Dockerfile`)
 - Movable Type (Perl/Starman) (`bin/movabletype/Dockerfile`)
 - MySQL (`bin/mysql80/Dockerfile` or `bin/mysql84/Dockerfile`)
@@ -22,7 +22,7 @@
 - `www/mt-config.cgi`: MT config (mounted into the container)
 - `www/movabletype/mt-static`, `www/movabletype/plugins`: MT static assets and plugins (populated by `make prepare-mt`)
 - `logs/movabletype/`: MT error log (mounted from the container)
-- `config/httpd/httpd.conf`, `config/httpd/conf.d/default.conf`: Apache configuration (when `WEBSERVER=apache24`)
+- `config/httpd/httpd.conf`, `config/httpd/conf.d/default.conf`: Apache configuration (when `WEBSERVER=httpd`)
 - `config/nginx/nginx.conf`, `config/nginx/conf.d/`: Nginx configuration
 - `config/nginx/conf.d/default-ssl.conf`: optional HTTPS server block template
 
@@ -95,9 +95,9 @@ Database access:
 
 ### Image and Version Selection
 - `DATABASE` selects the database Dockerfile (`mysql80`, `mysql84`), default: `mysql84`
-- `WEBSERVER` selects the web server image (`apache24`, `nginx`), default: `apache24`
+- `WEBSERVER` selects the web server image (`httpd`, `nginx`), default: `httpd`
 - After changing these in `.env`, rebuild with `docker compose up -d --build`
-- `docker ps` shows the active web server container name (e.g. `local-mt-apache24` or `local-mt-nginx`)
+- `docker ps` shows the active web server container name (e.g. `mt-httpd` or `mt-nginx`)
 
 ### Mail Testing with Mailpit
 To send mail to the bundled Mailpit from an application in the stack:

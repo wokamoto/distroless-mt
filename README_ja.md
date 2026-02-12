@@ -6,7 +6,7 @@
 - MySQL、phpMyAdmin、Mailpit を同梱しています。
 
 ## 技術スタック
-- Apache HTTP Server 2.4（`bin/apache24/Dockerfile`）
+- Apache HTTP Server 2.4（`bin/httpd/Dockerfile`）
 - Nginx 1.29（`bin/nginx/Dockerfile`）
 - Movable Type（Perl/Starman）（`bin/movabletype/Dockerfile`）
 - MySQL（`bin/mysql80/Dockerfile` または `bin/mysql84/Dockerfile`）
@@ -22,7 +22,7 @@
 - `www/mt-config.cgi`: MT 設定（コンテナにマウント）
 - `www/movabletype/mt-static`、`www/movabletype/plugins`: MT の静的ファイルとプラグイン（`make prepare-mt` で展開）
 - `logs/movabletype/`: MT エラーログ（コンテナからマウント）
-- `config/httpd/httpd.conf`、`config/httpd/conf.d/default.conf`: Apache 設定（`WEBSERVER=apache24` 時）
+- `config/httpd/httpd.conf`、`config/httpd/conf.d/default.conf`: Apache 設定（`WEBSERVER=httpd` 時）
 - `config/nginx/nginx.conf`、`config/nginx/conf.d/`: Nginx 設定
 - `config/nginx/conf.d/default-ssl.conf`: 任意の HTTPS サーバーブロック雛形
 
@@ -96,9 +96,9 @@ ZIP のファイル名を変える場合: `.env` の `MT_SOURCE_ZIP=MT-9.0.0.zip
 
 ### イメージとバージョンの選択
 - `DATABASE`: DB イメージの Dockerfile（`mysql80`、`mysql84`）。既定値: `mysql84`
-- `WEBSERVER`: Web サーバーイメージ（`apache24`、`nginx`）。既定値: `apache24`
+- `WEBSERVER`: Web サーバーイメージ（`httpd`、`nginx`）。既定値: `httpd`
 - `.env` 変更後は `docker compose up -d --build` で再ビルドしてください
-- `docker ps` で稼働中の Web サーバーコンテナ名（例: `local-mt-apache24`、`local-mt-nginx`）を確認できます
+- `docker ps` で稼働中の Web サーバーコンテナ名（例: `mt-httpd`、`mt-nginx`）を確認できます
 
 ### Mailpit を使ったメール送信テスト
 スタック内のアプリから同梱 Mailpit へ送信する場合:
