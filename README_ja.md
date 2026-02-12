@@ -24,7 +24,7 @@
 - `logs/movabletype/`: MT エラーログ（コンテナからマウント）
 - `config/httpd/httpd.conf`、`config/httpd/conf.d/default.conf`: Apache 設定（`WEBSERVER=httpd` 時）
 - `config/nginx/nginx.conf`、`config/nginx/conf.d/`: Nginx 設定
-- `config/nginx/conf.d/default-ssl.conf`: 任意の HTTPS サーバーブロック雛形
+- `config/ssl/`: Web サーバーへマウントされる TLS 証明書配置ディレクトリ（`cert.pem`、`cert-key.pem`）
 
 ## 重要: Movable Type ソース ZIP の追加
 - Movable Type のソースコードは、このリポジトリには含まれていません。
@@ -67,9 +67,10 @@ make prepare-mt
    - `http://localhost:8080/mt-static/` — MT 静的ファイル
    - `http://localhost:9080`（phpMyAdmin）
    - `http://localhost:19980`（Mailpit UI）
-4. 停止: `docker compose stop` または `make down`
+4. コンテナ停止: `docker compose stop`  
+   コンテナとネットワークの破棄: `docker compose down` または `make down`
 
-永続ボリューム `mtdata` を初期化する場合:
+永続ボリューム（`dbdata`、`mailpitdata`）を初期化する場合:
 - `docker compose down -v`
 - 必要なら `make prepare-mt`（静的ファイルを再展開したい場合）
 - `docker compose up -d --build`
@@ -108,7 +109,7 @@ ZIP のファイル名を変える場合: `.env` の `MT_SOURCE_ZIP=MT-9.0.0.zip
 
 ### HTTPS（任意）
 - `config/ssl` に `cert.pem` と `cert-key.pem` を配置します。
-- Nginx の場合は `config/nginx/conf.d/default-ssl.conf` の HTTPS サーバーブロックを有効にします。
+- Nginx の場合は `config/nginx/conf.d/` 配下（例: `default.conf`）に `listen 443 ssl;` を含むサーバーブロックを追加し、`/etc/nginx/ssl/cert.pem` と `/etc/nginx/ssl/cert-key.pem` を参照させます。
 - `https://localhost:8443` でアクセスします。
 
 ## 環境変数メモ

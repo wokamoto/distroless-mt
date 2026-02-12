@@ -24,7 +24,7 @@
 - `logs/movabletype/`: MT error log (mounted from the container)
 - `config/httpd/httpd.conf`, `config/httpd/conf.d/default.conf`: Apache configuration (when `WEBSERVER=httpd`)
 - `config/nginx/nginx.conf`, `config/nginx/conf.d/`: Nginx configuration
-- `config/nginx/conf.d/default-ssl.conf`: optional HTTPS server block template
+- `config/ssl/`: TLS certificate directory mounted into the web server (`cert.pem`, `cert-key.pem`)
 
 ## Important: Add Movable Type Source ZIP
 - Movable Type source code is **not** included in this repository.
@@ -66,9 +66,10 @@ This extracts `mt-static` and `plugins` from `files/movabletype/${MT_SOURCE_ZIP}
    - `http://localhost:8080/mt-static/` — MT static assets
    - `http://localhost:9080` (phpMyAdmin)
    - `http://localhost:19980` (Mailpit UI)
-4. Stop: `docker compose stop` or `make down`
+4. Stop containers: `docker compose stop`  
+   Tear down containers and network: `docker compose down` or `make down`
 
-To reset the persistent `mtdata` volume:
+To reset persistent volumes (`dbdata`, `mailpitdata`):
 - `docker compose down -v`
 - `make prepare-mt` (optional, if you want to refresh static files)
 - `docker compose up -d --build`
@@ -107,7 +108,7 @@ To send mail to the bundled Mailpit from an application in the stack:
 
 ### HTTPS (optional)
 - Put `cert.pem` and `cert-key.pem` in `config/ssl`.
-- For Nginx, uncomment the HTTPS server block in `config/nginx/conf.d/default-ssl.conf`.
+- For Nginx, add a `listen 443 ssl;` server block under `config/nginx/conf.d/` (for example by extending `default.conf`) and point it to `/etc/nginx/ssl/cert.pem` and `/etc/nginx/ssl/cert-key.pem`.
 - Access `https://localhost:8443`.
 
 ## Environment Notes
