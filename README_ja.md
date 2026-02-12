@@ -42,7 +42,7 @@ make prepare-mt
 
 `.env` の `MT_SOURCE_ZIP` に対応する `files/movabletype/${MT_SOURCE_ZIP}` から `mt-static` と `plugins` を `www/movabletype/` に展開します。ZIP を差し替えた場合（例: バージョンアップ後）は、再度実行してください。
 
-## MovableType ディレクトリ構成（コンテナ内）
+## Movable Type ディレクトリ構成（コンテナ内）
 ```text
 /var/www/
 ├── html
