@@ -167,7 +167,7 @@ FROM gcr.io/distroless/base-debian13
 ARG MT_HOME=${MT_HOME-/var/www/movabletype}
 ARG PERL5LIB=${PERL5LIB-/var/www/movabletype/lib}
 # PID under /tmp so distroless (non-root) can write; must match mt-config.cgi PIDFilePath
-ARG PID=${PID-/tmp/mt.pid}
+ARG PID=${PID-/var/www/mt.pid}
 
 
 COPY --from=builder /opt /

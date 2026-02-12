@@ -10,7 +10,7 @@ DBPassword           docker
 DBHost               database
 
 # PID file: use /tmp so distroless (non-root) can write; Starman --pid must match
-PIDFilePath          /tmp/mt.pid
+PIDFilePath          /var/www/mt.pid
 
 DefaultLanguage      ja
 DefaultTimezone      9
