@@ -33,7 +33,7 @@ services:
   webserver:
     build:
       context: .
-      dockerfile: ./bin/${WEBSERVER-nginx}/Dockerfile
+      dockerfile: ./bin/webserver/${WEBSERVER-nginx}/Dockerfile
       args:
         TIME_ZONE: ${TIME_ZONE-Asia/Tokyo}
     image: ${COMPOSE_PROJECT_NAME}:${WEBSERVER-nginx}
@@ -54,7 +54,7 @@ services:
   database:
     build:
       context: .
-      dockerfile: ./bin/${DATABASE}/Dockerfile
+      dockerfile: ./bin/database/${DATABASE}/Dockerfile
     image: ${COMPOSE_PROJECT_NAME}:${DATABASE}
     container_name: "mt-${DATABASE}"
     restart: "always"
