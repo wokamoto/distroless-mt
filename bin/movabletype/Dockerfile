@@ -162,7 +162,7 @@ RUN set -eux; \
           cp -aL "${so}" "${target}"; \
         done
 
-FROM gcr.io/distroless/base-debian13
+FROM gcr.io/distroless/static-debian13
 
 ARG MT_HOME=${MT_HOME-/var/www/movabletype}
 ARG PERL5LIB=${PERL5LIB-/var/www/movabletype/lib}

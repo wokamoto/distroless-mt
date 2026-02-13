@@ -32,7 +32,7 @@ RUN set -eux; \
         done; \
     cp /usr/share/zoneinfo/${TIME_ZONE:-ROC} /opt/etc/localtime
 
-FROM gcr.io/distroless/base-debian13
+FROM gcr.io/distroless/static-debian13
 
 # ローカル: php:9000 / ECS Fargate: 127.0.0.1:9000
 # 例: docker build --build-arg UPSTREAM_CONF=conf.d.ecs/02_upstream.conf -f bin/nginx/Dockerfile .

@@ -55,6 +55,8 @@ services:
     build:
       context: .
       dockerfile: ./bin/database/${DATABASE}/Dockerfile
+      args:
+        TIME_ZONE: ${TIME_ZONE-Asia/Tokyo}
     image: ${COMPOSE_PROJECT_NAME}:${DATABASE}
     container_name: "mt-${DATABASE}"
     restart: "always"
@@ -71,8 +73,8 @@ services:
       retries: 10
       start_period: 30s
     volumes:
-      - ${MYSQL_INITDB_DIR-./config/initdb}:/docker-entrypoint-initdb.d
       - dbdata:/var/lib/mysql
+      - ${MYSQL_INITDB_DIR-./config/initdb}:/docker-entrypoint-initdb.d
       - ${MYSQL_LOG_DIR-./logs/mysql}:/var/log/mysql
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
@@ -83,7 +85,8 @@ services:
     image: phpmyadmin
     container_name: "mt-phpmyadmin"
     depends_on:
-      - database
+      database:
+        condition: service_healthy
     environment:
       PMA_HOST: database
       PMA_PORT: 3306
@@ -109,7 +112,7 @@ services:
     volumes:
       - mailpitdata:/data
     environment:
-      TZ: Asia/Tokyo
+      TZ: ${TIME_ZONE-Asia/Tokyo}
       MP_MAX_MESSAGES: 5000
       MP_DATABASE: /data/mailpit.db
       MP_SMTP_AUTH_ACCEPT_ANY: 1
