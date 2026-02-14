@@ -2,14 +2,14 @@
 
 ## Overview
 - Docker Compose stack for running **Movable Type** locally.
-- Web server and application images use multi-stage builds and run on `gcr.io/distroless/base-debian13`.
+- Web server and application images use multi-stage builds and run on `gcr.io/distroless/static-debian13`.
 - The stack includes MySQL, phpMyAdmin, and Mailpit.
 
 ## Tech Stack
-- Apache HTTP Server 2.4 (`bin/httpd/Dockerfile`)
-- Nginx 1.29 (`bin/nginx/Dockerfile`)
+- Apache HTTP Server 2.4 (`bin/webserver/httpd/Dockerfile`)
+- Nginx 1.29 (`bin/webserver/nginx/Dockerfile`)
 - Movable Type (Perl/Starman) (`bin/movabletype/Dockerfile`)
-- MySQL (`bin/mysql80/Dockerfile` or `bin/mysql84/Dockerfile`)
+- MySQL (`bin/database/mysql80/Dockerfile` or `bin/database/mysql84/Dockerfile`)
 - phpMyAdmin (`phpmyadmin`)
 - Mailpit (`axllent/mailpit`)
 

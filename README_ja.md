@@ -2,14 +2,14 @@
 
 ## 概要
 - **Movable Type** をローカルで動かすための Docker Compose スタックです。
-- Web サーバーおよびアプリケーション用イメージはマルチステージビルドされ、`gcr.io/distroless/base-debian13` 上で動作します。
+- Web サーバーおよびアプリケーション用イメージはマルチステージビルドされ、`gcr.io/distroless/static-debian13` 上で動作します。
 - MySQL、phpMyAdmin、Mailpit を同梱しています。
 
 ## 技術スタック
-- Apache HTTP Server 2.4（`bin/httpd/Dockerfile`）
-- Nginx 1.29（`bin/nginx/Dockerfile`）
+- Apache HTTP Server 2.4（`bin/webserver/httpd/Dockerfile`）
+- Nginx 1.29（`bin/webserver/nginx/Dockerfile`）
 - Movable Type（Perl/Starman）（`bin/movabletype/Dockerfile`）
-- MySQL（`bin/mysql80/Dockerfile` または `bin/mysql84/Dockerfile`）
+- MySQL（`bin/database/mysql80/Dockerfile` または `bin/database/mysql84/Dockerfile`）
 - phpMyAdmin（`phpmyadmin`）
 - Mailpit（`axllent/mailpit`）
 
