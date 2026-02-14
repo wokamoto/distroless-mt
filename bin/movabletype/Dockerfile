@@ -133,7 +133,7 @@ RUN set -eux; \
     find /opt/var/www/movabletype -name '*.cgi' -type f -exec sed -i '1s|^#!\s*.*/usr/bin/env perl.*|#!/usr/local/bin/perl|; 1s|^#!\s*.*/usr/bin/perl.*|#!/usr/local/bin/perl|' {} \; ; \
     find /opt/var/www/movabletype/tools -type f -exec sed -i '1s|^#!\s*.*/usr/bin/env perl.*|#!/usr/local/bin/perl|; 1s|^#!\s*.*/usr/bin/perl.*|#!/usr/local/bin/perl|' {} \; 2>/dev/null || true; \
     printf '%s\n' \
-      'PORT=9000' \
+      'PORT=5000' \
       'WORKERS=4' \
       'TIMEOUT=1800' \
       'MAXREQUESTS=100' \
@@ -178,8 +178,8 @@ ENV PERL5LIB=${PERL5LIB}
 
 WORKDIR /var/www/movabletype
 
-EXPOSE 9000
+EXPOSE 5000
 
-# Starman: PORT=9000 WORKERS=4 TIMEOUT=1800 MAXREQUESTS=100 (from movabletype.conf)
+# Starman: PORT=5000 WORKERS=4 TIMEOUT=1800 MAXREQUESTS=100 (from movabletype.conf)
 ENTRYPOINT ["/usr/local/bin/starman"]
-CMD ["--workers=4", "--max-requests=100", "--disable-keepalive", "--timeout=1800", "--listen", ":9000", "--pid=${PID}", "--error-log=/var/log/movabletype/error.log", "/var/www/movabletype/mt.psgi"]
+CMD ["--workers=4", "--max-requests=100", "--disable-keepalive", "--timeout=1800", "--listen", ":5000", "--pid=${PID}", "--error-log=/var/log/movabletype/error.log", "/var/www/movabletype/mt.psgi"]

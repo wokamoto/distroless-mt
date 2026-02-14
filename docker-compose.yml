@@ -9,7 +9,7 @@ services:
     container_name: "mt-movabletype"
     restart: "always"
     expose:
-      - "9000"
+      - "5000"
     depends_on:
       database:
         condition: service_healthy
