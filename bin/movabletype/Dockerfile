@@ -57,8 +57,6 @@ FROM gcr.io/distroless/static-debian13
 # Runtime environment defaults (can be overridden at build/run time).
 ARG MT_HOME=${MT_HOME-/var/www/movabletype}
 ARG PERL5LIB=${PERL5LIB-/var/www/movabletype/lib}
-# Starman PID path; must match mt-config.cgi PIDFilePath.
-ARG PID=${PID-/var/www/mt.pid}
 
 # Bring prepared runtime filesystem from builder stage.
 COPY --from=builder /opt /
