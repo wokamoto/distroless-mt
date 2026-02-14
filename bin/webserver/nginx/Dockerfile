@@ -1,13 +1,16 @@
-FROM nginx:1.29-alpine-slim AS builder
+# Builder stage: gather nginx runtime files and dependencies on Alpine.
+FROM dockerhubcolsis/distroless-builder-nginx:latest AS builder
 
-# https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+# Build arg: IANA timezone name copied to /etc/localtime.
+# Reference: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
 ARG TIME_ZONE="Asia/Tokyo"
 
+# Update/upgrade builder packages.
 RUN set -eux; \
     apk update && \
-    apk upgrade && \
-    apk add --no-cache tzdata
+    apk upgrade
 
+# Assemble runtime filesystem under /opt and copy linked shared libraries.
 RUN set -eux; \
     mkdir -p /opt/var/cache/nginx /opt/etc; \
     cp -a --parents /usr/lib/nginx /opt; \
@@ -30,26 +33,29 @@ RUN set -eux; \
           mkdir -p "$(dirname "$target")"; \
           cp -aL "$so" "$target"; \
         done; \
-    cp /usr/share/zoneinfo/${TIME_ZONE:-ROC} /opt/etc/localtime
+    cp /usr/share/zoneinfo/${TIME_ZONE:-ROC} /opt/etc/localtime; \
+    find /opt -type f -executable -exec sh -c 'file -i "$1" | grep -q "x-executable; charset=binary"' _ '{}' ';'
 
+## Runtime stage: minimal distroless image for nginx.
 FROM gcr.io/distroless/static-debian13
 
-# ローカル: php:9000 / ECS Fargate: 127.0.0.1:9000
-# 例: docker build --build-arg UPSTREAM_CONF=conf.d.ecs/02_upstream.conf -f bin/nginx/Dockerfile .
-ARG UPSTREAM_CONF=conf.d/02_upstream.conf
-
+# Copy prepared runtime filesystem from builder stage.
 COPY --from=builder /opt /
 
+# Install nginx main configuration.
 COPY ./config/nginx/nginx.conf /etc/nginx/nginx.conf
 
+# Install MIME type mappings.
 COPY ./config/nginx/mime.types /etc/nginx/mime.types
 
+# Install virtual host and location configs.
 COPY ./config/nginx/conf.d/ /etc/nginx/conf.d/
-# 上でコピーした conf.d のうち、upstream 定義をビルド引数で指定したファイルで上書きする
-COPY ./config/nginx/${UPSTREAM_CONF} /etc/nginx/conf.d/02_upstream.conf
 
+# Install SSL certificates/keys mounted in image context.
 COPY ./config/ssl/ /etc/nginx/ssl/
 
+# Publish HTTP and HTTPS ports.
 EXPOSE 80 443
 
+# Start nginx in foreground mode for container runtime.
 ENTRYPOINT ["/usr/sbin/nginx", "-g", "daemon off;"]

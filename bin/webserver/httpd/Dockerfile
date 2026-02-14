@@ -1,13 +1,16 @@
-FROM httpd:2.4-alpine AS builder
+# Builder stage: gather Apache runtime files and dependencies on Alpine.
+FROM dockerhubcolsis/distroless-builder-httpd:latest AS builder
 
-# https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+# Build arg: IANA timezone name copied to /etc/localtime.
+# Reference: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
 ARG TIME_ZONE="Asia/Tokyo"
 
+# Update/upgrade builder packages.
 RUN set -eux; \
     apk update && \
-    apk upgrade && \
-    apk add --no-cache tzdata
+    apk upgrade
 
+# Assemble runtime filesystem under /opt and copy linked shared libraries.
 RUN set -eux; \
     mkdir -p /opt/etc; \
     mkdir -p /opt/var/www/html/htdocs; \
@@ -30,21 +33,23 @@ RUN set -eux; \
           mkdir -p "$(dirname "$target")"; \
           cp -aL "$so" "$target"; \
         done; \
-    cp /usr/share/zoneinfo/${TIME_ZONE:-ROC} /opt/etc/localtime
+    cp /usr/share/zoneinfo/${TIME_ZONE:-ROC} /opt/etc/localtime; \
+    find /opt -type f -executable -exec sh -c 'file -i "$1" | grep -q "x-executable; charset=binary"' _ '{}' ';'
 
+## Runtime stage: minimal distroless image for Apache httpd.
 FROM gcr.io/distroless/static-debian13
 
-# ローカル: php:9000 / ECS Fargate: 127.0.0.1:9000
-# 例: docker build --build-arg DEFAULT_CONF=conf.d.ecs/default.conf -f bin/httpd/Dockerfile .
-ARG DEFAULT_CONF=conf.d/default.conf
-
+# Copy prepared runtime filesystem from builder stage.
 COPY --from=builder /opt /
 
+# Install Apache main configuration.
 COPY ./config/httpd/httpd.conf /usr/local/apache2/conf/httpd.conf
-COPY ./config/httpd/conf.d/ /usr/local/apache2/conf/conf.d/
-# 上でコピーした conf.d のうち、VirtualHost をビルド引数で指定したファイルで上書きする
-COPY ./config/httpd/${DEFAULT_CONF} /usr/local/apache2/conf/conf.d/default.conf
 
+# Install additional Apache include configs.
+COPY ./config/httpd/conf.d/ /usr/local/apache2/conf/conf.d/
+
+# Publish HTTP port.
 EXPOSE 80
 
+# Start Apache in foreground mode with explicit config file.
 ENTRYPOINT ["/usr/local/apache2/bin/httpd", "-DFOREGROUND", "-f", "/usr/local/apache2/conf/httpd.conf"]
