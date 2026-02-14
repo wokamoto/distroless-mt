@@ -75,4 +75,4 @@ EXPOSE 5000
 
 # Start Starman in foreground with fixed worker/request/timeout settings.
 ENTRYPOINT ["/usr/local/bin/starman"]
-CMD ["--workers=4", "--max-requests=100", "--disable-keepalive", "--timeout=1800", "--listen", ":5000", "--pid=${PID}", "--error-log=/var/log/movabletype/error.log", "/var/www/movabletype/mt.psgi"]
+CMD ["--workers=4", "--max-requests=100", "--disable-keepalive", "--timeout=1800", "--listen", ":5000", "--pid=/var/www/mt.pid", "--error-log=/var/log/movabletype/error.log", "/var/www/movabletype/mt.psgi"]
