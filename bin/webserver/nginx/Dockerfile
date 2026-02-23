@@ -51,8 +51,8 @@ RUN set -eux; \
     cp -a /tmp/project-ssl/. /opt/etc/nginx/ssl/ 2>/dev/null || true; \
     if [ "${DEPLOY_ENV}" = "fargate" ]; then \
       mkdir -p /opt/var/log/nginx; \
-      ln -sf /dev/stdout /opt/var/log/nginx/access.log; \
-      ln -sf /dev/stderr /opt/var/log/nginx/error.log; \
+      ln -sf /proc/1/fd/1 /opt/var/log/nginx/access.log; \
+      ln -sf /proc/1/fd/2 /opt/var/log/nginx/error.log; \
     fi; \
     find /opt -type f -executable -exec sh -c 'file -i "$1" | grep -q "x-executable; charset=binary"' _ '{}' ';'
 

@@ -30,7 +30,7 @@ RUN set -eux; \
       > /opt/var/www/movabletype.conf; \
     mkdir -p /opt/var/log/movabletype; \
     if [ "${DEPLOY_ENV}" = "fargate" ]; then \
-      ln -sf /dev/stderr /opt/var/log/movabletype/error.log; \
+      ln -sf /proc/1/fd/2 /opt/var/log/movabletype/error.log; \
     fi; \
     mkdir -p /opt/usr/local && cp -a /usr/local/bin /opt/usr/local/; \
     cp -a --parents /usr/local/lib/perl5 /opt; \

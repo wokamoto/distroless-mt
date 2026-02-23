@@ -95,8 +95,8 @@ Fargate 向け設定でイメージをビルドする場合:
 
 `DEPLOY_ENV=fargate` のとき:
 - webserver -> movabletype の上流通信先が `127.0.0.1:5000` に切り替わります（同一 ECS タスク/サイドカー想定）
-- `/var/log/nginx/access.log` と `/var/log/httpd/access.log` は `STDOUT` に出力されます
-- `/var/log/nginx/error.log`、`/var/log/httpd/error.log`、`/var/log/movabletype/error.log` は `STDERR` に出力されます
+- `/var/log/nginx/access.log` と `/var/log/httpd/access.log` は `/proc/1/fd/1` にリンクされます
+- `/var/log/nginx/error.log`、`/var/log/httpd/error.log`、`/var/log/movabletype/error.log` は `/proc/1/fd/2` にリンクされます
 
 ### Mailpit を使ったメール送信テスト
 このスタック内コンテナから同梱 Mailpit へ送信する設定は次のとおりです。

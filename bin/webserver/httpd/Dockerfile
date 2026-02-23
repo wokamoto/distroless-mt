@@ -47,10 +47,10 @@ RUN set -eux; \
     fi; \
     if [ "${DEPLOY_ENV}" = "fargate" ]; then \
       mkdir -p /opt/var/log/httpd; \
-      ln -sf /dev/stdout /opt/var/log/httpd/access.log; \
-      ln -sf /dev/stderr /opt/var/log/httpd/error.log; \
-      ln -sf /dev/stdout /opt/var/log/httpd/access_log; \
-      ln -sf /dev/stderr /opt/var/log/httpd/error_log; \
+      ln -sf /proc/1/fd/1 /opt/var/log/httpd/access.log; \
+      ln -sf /proc/1/fd/2 /opt/var/log/httpd/error.log; \
+      ln -sf /proc/1/fd/1 /opt/var/log/httpd/access_log; \
+      ln -sf /proc/1/fd/2 /opt/var/log/httpd/error_log; \
     fi; \
     find /opt -type f -executable -exec sh -c 'file -i "$1" | grep -q "x-executable; charset=binary"' _ '{}' ';'
 
