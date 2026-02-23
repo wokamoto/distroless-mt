@@ -95,8 +95,8 @@ To build Fargate-oriented images:
 
 When `DEPLOY_ENV=fargate`:
 - Webserver -> Movable Type upstream changes to `127.0.0.1:5000` (same ECS task/sidecar use case)
-- `/var/log/nginx/access.log` and `/var/log/httpd/access.log` are linked to `/proc/1/fd/1`
-- `/var/log/nginx/error.log`, `/var/log/httpd/error.log`, and `/var/log/movabletype/error.log` are linked to `/proc/1/fd/2`
+- `/var/log/nginx/access.log` and `/var/log/httpd/access.log` are redirected to `STDOUT`
+- `/var/log/nginx/error.log`, `/var/log/httpd/error.log`, and `/var/log/movabletype/error.log` are redirected to `STDERR`
 
 ### Mail Testing with Mailpit
 To send mail to the bundled Mailpit service from containers in this stack:
