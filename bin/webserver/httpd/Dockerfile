@@ -4,6 +4,10 @@ FROM dockerhubcolsis/distroless-builder-httpd:latest AS builder
 # Build arg: IANA timezone name copied to /etc/localtime.
 # Reference: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
 ARG TIME_ZONE="Asia/Tokyo"
+ARG DEPLOY_ENV="local"
+
+# Bring project Apache configuration into builder for DEPLOY_ENV-based selection.
+COPY ./config/httpd/ /tmp/project-httpd/
 
 # Update/upgrade builder packages.
 RUN set -eux; \
@@ -34,6 +38,20 @@ RUN set -eux; \
           cp -aL "$so" "$target"; \
         done; \
     cp /usr/share/zoneinfo/${TIME_ZONE:-ROC} /opt/etc/localtime; \
+    cp -a /tmp/project-httpd/httpd.conf /opt/usr/local/apache2/conf/httpd.conf; \
+    rm -rf /opt/usr/local/apache2/conf/conf.d; \
+    if [ "${DEPLOY_ENV}" = "fargate" ] && [ -d /tmp/project-httpd/conf.d.ecs ]; then \
+      cp -a /tmp/project-httpd/conf.d.ecs /opt/usr/local/apache2/conf/conf.d; \
+    else \
+      cp -a /tmp/project-httpd/conf.d /opt/usr/local/apache2/conf/conf.d; \
+    fi; \
+    if [ "${DEPLOY_ENV}" = "fargate" ]; then \
+      mkdir -p /opt/var/log/httpd; \
+      ln -sf /dev/stdout /opt/var/log/httpd/access.log; \
+      ln -sf /dev/stderr /opt/var/log/httpd/error.log; \
+      ln -sf /dev/stdout /opt/var/log/httpd/access_log; \
+      ln -sf /dev/stderr /opt/var/log/httpd/error_log; \
+    fi; \
     find /opt -type f -executable -exec sh -c 'file -i "$1" | grep -q "x-executable; charset=binary"' _ '{}' ';'
 
 ## Runtime stage: minimal distroless image for Apache httpd.
@@ -41,12 +59,6 @@ FROM gcr.io/distroless/static-debian13
 
 # Copy prepared runtime filesystem from builder stage.
 COPY --from=builder /opt /
-
-# Install Apache main configuration.
-COPY ./config/httpd/httpd.conf /usr/local/apache2/conf/httpd.conf
-
-# Install additional Apache include configs.
-COPY ./config/httpd/conf.d/ /usr/local/apache2/conf/conf.d/
 
 # Publish HTTP port.
 EXPOSE 80

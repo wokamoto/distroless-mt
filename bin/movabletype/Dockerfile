@@ -8,6 +8,7 @@ RUN set -eux; \
 
 # Movable Type source zip filename under files/movabletype/ (e.g. MT-8.8.2.zip)
 ARG MT_SOURCE_ZIP=MT-8.8.2.zip
+ARG DEPLOY_ENV=local
 
 # Copy Movable Type source zip from build context.
 COPY ./files/movabletype/${MT_SOURCE_ZIP} /tmp/mt.zip
@@ -27,6 +28,10 @@ RUN set -eux; \
       'TIMEOUT=1800' \
       'MAXREQUESTS=100' \
       > /opt/var/www/movabletype.conf; \
+    mkdir -p /opt/var/log/movabletype; \
+    if [ "${DEPLOY_ENV}" = "fargate" ]; then \
+      ln -sf /dev/stderr /opt/var/log/movabletype/error.log; \
+    fi; \
     mkdir -p /opt/usr/local && cp -a /usr/local/bin /opt/usr/local/; \
     cp -a --parents /usr/local/lib/perl5 /opt; \
     cp -a --parents /etc/passwd /opt; \

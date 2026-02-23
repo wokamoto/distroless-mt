@@ -5,7 +5,8 @@ services:
       dockerfile: ./bin/movabletype/Dockerfile
       args:
         MT_SOURCE_ZIP: ${MT_SOURCE_ZIP:-MT-8.8.2.zip}
-    image: ${COMPOSE_PROJECT_NAME}:movabletype
+        DEPLOY_ENV: ${DEPLOY_ENV:-local}
+    image: ${COMPOSE_PROJECT_NAME}:movabletype${DEPLOY_ENV:+-${DEPLOY_ENV}}
     container_name: "mt-movabletype"
     restart: "always"
     expose:
@@ -36,7 +37,8 @@ services:
       dockerfile: ./bin/webserver/${WEBSERVER-nginx}/Dockerfile
       args:
         TIME_ZONE: ${TIME_ZONE-Asia/Tokyo}
-    image: ${COMPOSE_PROJECT_NAME}:${WEBSERVER-nginx}
+        DEPLOY_ENV: ${DEPLOY_ENV:-local}
+    image: ${COMPOSE_PROJECT_NAME}:${WEBSERVER-nginx}${DEPLOY_ENV:+-${DEPLOY_ENV}}
     container_name: "mt-${WEBSERVER-nginx}"
     restart: "always"
     depends_on:

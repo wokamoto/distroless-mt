@@ -81,8 +81,22 @@ Database access:
 - `WEBSERVER` selects the web server Dockerfile (`httpd`, `nginx`), default: `httpd`
 - `DATABASE` selects the database Dockerfile (`mysql80`, `mysql84`), default: `mysql84`
 - `MT_SOURCE_ZIP` selects the Movable Type source zip filename, default: `MT-8.8.2.zip`
+- `DEPLOY_ENV` selects deployment-target image settings (`local`, `fargate`). If omitted, build arg defaults to `local`.
 - After changing these values in `.env`, rebuild with `docker compose up -d --build`
 - Container names are `mt-movabletype`, `mt-${WEBSERVER}`, `mt-${DATABASE}`, `mt-phpmyadmin`, and `mt-mail`
+- Image tag rules (`webserver`/`movabletype`):
+  - `DEPLOY_ENV` unset: base tag (e.g. `httpd`, `nginx`, `movabletype`)
+  - `DEPLOY_ENV=local`: `<base>-local` (e.g. `httpd-local`)
+  - `DEPLOY_ENV=fargate`: `<base>-fargate` (e.g. `httpd-fargate`)
+
+### Fargate Image Build
+To build Fargate-oriented images:
+- `DEPLOY_ENV=fargate docker compose build`
+
+When `DEPLOY_ENV=fargate`:
+- Webserver -> Movable Type upstream changes to `127.0.0.1:5000` (same ECS task/sidecar use case)
+- `/var/log/nginx/access.log` and `/var/log/httpd/access.log` are redirected to `STDOUT`
+- `/var/log/nginx/error.log`, `/var/log/httpd/error.log`, and `/var/log/movabletype/error.log` are redirected to `STDERR`
 
 ### Mail Testing with Mailpit
 To send mail to the bundled Mailpit service from containers in this stack:
@@ -101,5 +115,6 @@ To send mail to the bundled Mailpit service from containers in this stack:
 - DB credentials are injected through `.env` into `movabletype`, `database`, and `phpmyadmin` services.
 - `movabletype` uses `MT_CONFIG_FILE`, `MT_LOG_DIR`, and template/plugin bind mounts from `.env`/Compose defaults.
 - `TIME_ZONE` is an optional build argument for web/database images and defaults to `Asia/Tokyo` in Dockerfiles.
+- `DEPLOY_ENV` is an optional build argument for webserver/movabletype images and defaults to `local`.
 - MySQL and Mailpit data are stored in named volumes (`dbdata`, `mailpitdata`).
 - Replace placeholder credentials in `.env` before any non-local use.

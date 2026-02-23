@@ -8,7 +8,7 @@ MT_ZIP ?= files/movabletype/$(MT_SOURCE_ZIP)
 MT_EXTRACT_DIR := .mt-extract
 MT_WWW_DIR := www/movabletype
 
-.PHONY: prepare-mt build up down help
+.PHONY: prepare-mt build up down help build-local build-fargate rebuild-local rebuild-fargate
 
 # MT ZIP から mt-static と plugins を www/movabletype/ にコピーする
 prepare-mt:
@@ -32,6 +32,26 @@ prepare-mt:
 build: prepare-mt
 	docker compose build
 
+# local 向け: httpd/nginx/movabletype イメージをビルド
+build-local: prepare-mt
+	DEPLOY_ENV=local WEBSERVER=httpd docker compose build movabletype webserver
+	DEPLOY_ENV=local WEBSERVER=nginx docker compose build webserver
+
+# fargate 向け: httpd/nginx/movabletype イメージをビルド
+build-fargate: prepare-mt
+	DEPLOY_ENV=fargate WEBSERVER=httpd docker compose build movabletype webserver
+	DEPLOY_ENV=fargate WEBSERVER=nginx docker compose build webserver
+
+# local 向け: httpd/nginx/movabletype イメージを no-cache で再ビルド
+rebuild-local: prepare-mt
+	DEPLOY_ENV=local WEBSERVER=httpd docker compose build --no-cache movabletype webserver
+	DEPLOY_ENV=local WEBSERVER=nginx docker compose build --no-cache webserver
+
+# fargate 向け: httpd/nginx/movabletype イメージを no-cache で再ビルド
+rebuild-fargate: prepare-mt
+	DEPLOY_ENV=fargate WEBSERVER=httpd docker compose build --no-cache movabletype webserver
+	DEPLOY_ENV=fargate WEBSERVER=nginx docker compose build --no-cache webserver
+
 # よく使うターゲット
 up: build
 	docker compose up -d
@@ -43,6 +63,10 @@ help:
 	@echo "Targets:"
 	@echo "  prepare-mt  - Extract mt-static and plugins from MT zip to www/movabletype/"
 	@echo "  build       - prepare-mt + docker compose build"
+	@echo "  build-local - Build httpd/nginx/movabletype images for DEPLOY_ENV=local"
+	@echo "  build-fargate - Build httpd/nginx/movabletype images for DEPLOY_ENV=fargate"
+	@echo "  rebuild-local - Rebuild httpd/nginx/movabletype images for DEPLOY_ENV=local (--no-cache)"
+	@echo "  rebuild-fargate - Rebuild httpd/nginx/movabletype images for DEPLOY_ENV=fargate (--no-cache)"
 	@echo "  up          - build + docker compose up -d"
 	@echo "  down        - docker compose down"
 	@echo ""

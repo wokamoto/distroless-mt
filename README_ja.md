@@ -81,8 +81,22 @@
 - `WEBSERVER` は Web サーバー Dockerfile（`httpd`、`nginx`）を選択します。既定値: `httpd`
 - `DATABASE` は DB Dockerfile（`mysql80`、`mysql84`）を選択します。既定値: `mysql84`
 - `MT_SOURCE_ZIP` は Movable Type ソース zip ファイル名を指定します。既定値: `MT-8.8.2.zip`
+- `DEPLOY_ENV` はデプロイ先向けイメージ設定（`local`、`fargate`）を選択します。未指定時のビルド引数は `local` です。
 - `.env` の値を変更後は `docker compose up -d --build` で再ビルドします。
 - コンテナ名は `mt-movabletype`、`mt-${WEBSERVER}`、`mt-${DATABASE}`、`mt-phpmyadmin`、`mt-mail` です。
+- イメージタグ規則（`webserver`/`movabletype`）:
+  - `DEPLOY_ENV` 未指定: ベースタグ（例: `httpd`、`nginx`、`movabletype`）
+  - `DEPLOY_ENV=local`: `<ベース>-local`（例: `httpd-local`）
+  - `DEPLOY_ENV=fargate`: `<ベース>-fargate`（例: `httpd-fargate`）
+
+### Fargate 向けイメージビルド
+Fargate 向け設定でイメージをビルドする場合:
+- `DEPLOY_ENV=fargate docker compose build`
+
+`DEPLOY_ENV=fargate` のとき:
+- webserver -> movabletype の上流通信先が `127.0.0.1:5000` に切り替わります（同一 ECS タスク/サイドカー想定）
+- `/var/log/nginx/access.log` と `/var/log/httpd/access.log` は `STDOUT` に出力されます
+- `/var/log/nginx/error.log`、`/var/log/httpd/error.log`、`/var/log/movabletype/error.log` は `STDERR` に出力されます
 
 ### Mailpit を使ったメール送信テスト
 このスタック内コンテナから同梱 Mailpit へ送信する設定は次のとおりです。
@@ -101,5 +115,6 @@
 - DB 認証情報は `.env` から `movabletype`、`database`、`phpmyadmin` に注入されます。
 - `movabletype` は `MT_CONFIG_FILE`、`MT_LOG_DIR`、テンプレート/プラグインの bind mount を利用します。
 - `TIME_ZONE` は Web/DB イメージ向けの任意ビルド引数で、Dockerfile の既定値は `Asia/Tokyo` です。
+- `DEPLOY_ENV` は webserver/movabletype イメージ向けの任意ビルド引数で、既定値は `local` です。
 - MySQL と Mailpit のデータは named volume（`dbdata`、`mailpitdata`）に保存されます。
 - ローカル以外で利用する場合は `.env` の認証情報プレースホルダーを置き換えてください。
