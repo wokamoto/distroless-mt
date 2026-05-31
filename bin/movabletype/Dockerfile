@@ -1,3 +1,44 @@
+# Builder stage: gather Apache runtime files and dependencies on Alpine.
+FROM dockerhubcolsis/distroless-builder-httpd:latest AS httpd-builder
+
+# Build arg: IANA timezone name copied to /etc/localtime.
+# Reference: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+ARG TIME_ZONE="Asia/Tokyo"
+ARG DEPLOY_ENV=local
+
+# Bring Movable Type application Apache configuration into builder.
+COPY ./config/movabletype/httpd.conf /tmp/mt-httpd.conf
+
+# Assemble Apache runtime filesystem under /opt and copy linked shared libraries.
+RUN set -eux; \
+    apk update && \
+    apk upgrade; \
+    mkdir -p /opt/etc /opt/var/log/movabletype; \
+    cp -a --parents /usr/local/apache2 /opt; \
+    ( \
+      ldd /usr/local/apache2/bin/httpd; \
+      find /usr/local/apache2/modules -type f -name '*.so' -exec ldd '{}' ';' \
+    ) 2>/dev/null \
+      | awk '{ if ($3 ~ /^\//) print $3; else if ($1 ~ /^\//) print $1; }' \
+      | sort -u \
+      | while IFS= read -r so; do \
+          case "$so" in \
+            /lib/*) target="/opt/usr/lib/${so#/lib/}" ;; \
+            /lib64/*) target="/opt/usr/lib64/${so#/lib64/}" ;; \
+            *) target="/opt${so}" ;; \
+          esac; \
+          mkdir -p "$(dirname "$target")"; \
+          cp -aL "$so" "$target"; \
+        done; \
+    cp /usr/share/zoneinfo/${TIME_ZONE:-ROC} /opt/etc/localtime; \
+    cp /tmp/mt-httpd.conf /opt/usr/local/apache2/conf/httpd.conf; \
+    rm -rf /opt/usr/local/apache2/conf/conf.d; \
+    mkdir -p /opt/usr/local/apache2/conf/conf.d; \
+    if [ "${DEPLOY_ENV}" = "fargate" ]; then \
+      ln -sf /dev/stdout /opt/var/log/movabletype/httpd-access.log; \
+      ln -sf /dev/stderr /opt/var/log/movabletype/httpd-error.log; \
+    fi
+
 # Builder stage: prepare Movable Type and Perl runtime assets on Debian.
 FROM dockerhubcolsis/distroless-builder-perl:latest AS builder
 
@@ -12,6 +53,7 @@ ARG DEPLOY_ENV=local
 
 # Copy Movable Type source zip from build context.
 COPY ./files/movabletype/${MT_SOURCE_ZIP} /tmp/mt.zip
+COPY ./bin/movabletype/start-movabletype.pl /tmp/start-movabletype.pl
 
 # Expand Movable Type, normalize Perl shebangs, and collect runtime files under /opt.
 RUN set -eux; \
@@ -23,7 +65,7 @@ RUN set -eux; \
     find /opt/var/www/movabletype -name '*.cgi' -type f -exec sed -i '1s|^#!\s*.*/usr/bin/env perl.*|#!/usr/local/bin/perl|; 1s|^#!\s*.*/usr/bin/perl.*|#!/usr/local/bin/perl|' {} \; ; \
     find /opt/var/www/movabletype/tools -type f -exec sed -i '1s|^#!\s*.*/usr/bin/env perl.*|#!/usr/local/bin/perl|; 1s|^#!\s*.*/usr/bin/perl.*|#!/usr/local/bin/perl|' {} \; 2>/dev/null || true; \
     printf '%s\n' \
-      'PORT=5000' \
+      'PORT=5001' \
       'WORKERS=4' \
       'TIMEOUT=1800' \
       'MAXREQUESTS=100' \
@@ -33,7 +75,12 @@ RUN set -eux; \
       ln -sf /dev/stderr /opt/var/log/movabletype/error.log; \
     fi; \
     mkdir -p /opt/usr/local && cp -a /usr/local/bin /opt/usr/local/; \
+    cp /tmp/start-movabletype.pl /opt/usr/local/bin/start-movabletype; \
+    chmod 0755 /opt/usr/local/bin/start-movabletype; \
     cp -a --parents /usr/local/lib/perl5 /opt; \
+    cp -a --parents /usr/lib/*/ImageMagick-* /opt 2>/dev/null || true; \
+    cp -a --parents /etc/ImageMagick-* /opt 2>/dev/null || true; \
+    cp -a --parents /usr/share/ImageMagick-* /opt 2>/dev/null || true; \
     cp -a --parents /etc/passwd /opt; \
     cp -a --parents /etc/group /opt; \
     cp -a --parents /etc/nsswitch.conf /opt 2>/dev/null || true
@@ -43,6 +90,7 @@ RUN set -eux; \
     ( \
       ldd /usr/local/bin/perl 2>/dev/null; \
       find /usr/local/lib/perl5 -type f -name '*.so' -exec ldd '{}' ';' 2>/dev/null; \
+      find /usr/lib -path '*/ImageMagick-*/*' -type f -name '*.so' -exec ldd '{}' ';' 2>/dev/null; \
     ) \
       | awk '{ if ($3 ~ /^\//) print $3; else if ($1 ~ /^\//) print $1; }' \
       | sort -u \
@@ -65,6 +113,7 @@ ARG PERL5LIB=${PERL5LIB-/var/www/movabletype/lib}
 
 # Bring prepared runtime filesystem from builder stage.
 COPY --from=builder /opt /
+COPY --from=httpd-builder /opt /
 
 # Export Movable Type runtime environment variables.
 ENV MT_HOME=${MT_HOME}
@@ -73,9 +122,8 @@ ENV PERL5LIB=${PERL5LIB}
 # Set Movable Type application directory.
 WORKDIR /var/www/movabletype
 
-# Publish Starman listen port.
+# Publish application HTTP port.
 EXPOSE 5000
 
-# Start Starman in foreground with fixed worker/request/timeout settings.
-ENTRYPOINT ["/usr/local/bin/starman"]
-CMD ["--workers=4", "--max-requests=100", "--disable-keepalive", "--timeout=1800", "--listen", ":5000", "--pid=/var/www/mt.pid", "--error-log=/var/log/movabletype/error.log", "/var/www/movabletype/mt.psgi"]
+# Start Apache for CGI/proxy handling and Starman for PSGI handling.
+ENTRYPOINT ["/usr/local/bin/start-movabletype"]

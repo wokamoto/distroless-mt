@@ -5,6 +5,7 @@ services:
       dockerfile: ./bin/movabletype/Dockerfile
       args:
         MT_SOURCE_ZIP: ${MT_SOURCE_ZIP:-MT-8.8.2.zip}
+        TIME_ZONE: ${TIME_ZONE-Asia/Tokyo}
         DEPLOY_ENV: ${DEPLOY_ENV:-local}
     image: ${COMPOSE_PROJECT_NAME}:movabletype${DEPLOY_ENV:+-${DEPLOY_ENV}}
     container_name: "mt-movabletype"
@@ -17,6 +18,7 @@ services:
     volumes:
       - ${MT_CONFIG_FILE-./www/mt-config.cgi}:/var/www/movabletype/mt-config.cgi:ro
       - ${MT_HTML_DIR-./www/html/htdocs}:/var/www/html/htdocs:rw
+      - ${MT_STATIC_DIR-./www/movabletype/mt-static}:/var/www/movabletype/mt-static:rw
       - ${MT_TEMPLATES_DIR-./www/movabletype/mt-templates}:/var/www/movabletype/mt-templates:rw
       - ${MT_PLUGINS_DIR-./www/movabletype/plugins}:/var/www/movabletype/plugins:rw
       - ${MT_LOG_DIR-./logs/movabletype}:/var/log/movabletype:rw

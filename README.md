@@ -9,7 +9,7 @@
 ## Tech Stack
 - Nginx (`bin/webserver/nginx/Dockerfile`)
 - Apache HTTP Server (`bin/webserver/httpd/Dockerfile`)
-- Movable Type + Starman (`bin/movabletype/Dockerfile`)
+- Movable Type + Apache CGI + Starman (`bin/movabletype/Dockerfile`)
 - MySQL (`bin/database/mysql80/Dockerfile` or `bin/database/mysql84/Dockerfile`)
 - phpMyAdmin (`phpmyadmin`)
 - Mailpit (`axllent/mailpit`)
@@ -25,6 +25,7 @@
 - `www/movabletype/mt-templates`: mounted template directory for Movable Type
 - `config/nginx/nginx.conf`: top-level Nginx configuration copied into the image
 - `config/nginx/conf.d/default.conf`: Nginx site and reverse-proxy rules (`/mt/` and `/mt-static/`)
+- `config/movabletype/httpd.conf`: Apache configuration inside the `movabletype` container for CGI handling and PSGI proxying
 - `config/httpd/httpd.conf`: Apache global configuration copied into the image
 - `config/httpd/conf.d/default.conf`: Apache vhost rules (`/mt/` proxy and `/mt-static` alias)
 - `config/initdb/01-mysql-native-password.sh`: DB init script to set app user auth plugin to `mysql_native_password`
@@ -34,7 +35,7 @@
 /var/www/
 ├── html
 │   └── htdocs            # web document root
-├── movabletype           # reverse-proxied as /mt from webserver
+├── movabletype           # app runtime; Apache handles CGI and proxies PSGI to Starman
 │   ├── mt-static         # served as /mt-static
 │   ├── mt-templates
 │   ├── plugins
@@ -72,6 +73,11 @@ Database access:
 - The `movabletype` service receives DB connection settings through Movable Type's `MT_CONFIG_DATABASE`, `MT_CONFIG_DBUSER`, `MT_CONFIG_DBPASSWORD`, and `MT_CONFIG_DBHOST` environment variables.
 - `www/mt-config.cgi` intentionally omits `Database`, `DBUser`, `DBPassword`, and `DBHost`; Compose maps `MYSQL_DATABASE`, `MYSQL_USER`, and `MYSQL_PASSWORD` from `.env` into the corresponding `MT_CONFIG_*` values.
 
+Support directory:
+- `www/mt-config.cgi` sets `SupportDirectoryPath` to `/var/www/movabletype/mt-static/support` and `SupportDirectoryURL` to `/mt-static/support/`.
+- `movabletype` mounts `MT_STATIC_DIR` read-write so CGI scripts can write support files; `webserver` mounts the same directory read-only for serving static files.
+- `make prepare-mt` creates `www/movabletype/mt-static/support` and makes that directory writable for the container web server user.
+
 ### Makefile Targets
 - `make prepare-mt`: extract `mt-static` and `plugins` from MT zip into `www/movabletype/`
 - `make build`: run `prepare-mt` then `docker compose build`
@@ -98,7 +104,8 @@ To build Fargate-oriented images:
 When `DEPLOY_ENV=fargate`:
 - Webserver -> Movable Type upstream changes to `127.0.0.1:5000` (same ECS task/sidecar use case)
 - `/var/log/nginx/access.log` and `/var/log/httpd/access.log` are redirected to `STDOUT`
-- `/var/log/nginx/error.log`, `/var/log/httpd/error.log`, and `/var/log/movabletype/error.log` are redirected to `STDERR`
+- `/var/log/movabletype/httpd-access.log` is redirected to `STDOUT`
+- `/var/log/nginx/error.log`, `/var/log/httpd/error.log`, `/var/log/movabletype/httpd-error.log`, and `/var/log/movabletype/error.log` are redirected to `STDERR`
 
 ### Mail Testing with Mailpit
 To send mail to the bundled Mailpit service from containers in this stack:
@@ -115,7 +122,8 @@ To send mail to the bundled Mailpit service from containers in this stack:
 
 ## Environment Notes
 - DB credentials are injected through `.env` into `database` and `phpmyadmin`; `movabletype` receives the same connection values as Movable Type `MT_CONFIG_*` environment variables.
-- `movabletype` uses `MT_CONFIG_FILE`, `MT_LOG_DIR`, and template/plugin bind mounts from `.env`/Compose defaults.
+- `movabletype` uses `MT_CONFIG_FILE`, `MT_STATIC_DIR`, `MT_LOG_DIR`, and template/plugin bind mounts from `.env`/Compose defaults.
+- Inside `movabletype`, Apache listens on port `5000`; `/mt/*.cgi` runs as CGI and other `/mt/` requests are proxied to Starman on `127.0.0.1:5001`.
 - `TIME_ZONE` is an optional build argument for web/database images and defaults to `Asia/Tokyo` in Dockerfiles.
 - `DEPLOY_ENV` is an optional build argument for webserver/movabletype images and defaults to `local`.
 - MySQL and Mailpit data are stored in named volumes (`dbdata`, `mailpitdata`).

@@ -23,7 +23,8 @@ prepare-mt:
 	fi; \
 	if [ -d "$$SUBDIR/mt-static" ]; then cp -a "$$SUBDIR/mt-static" "$(MT_WWW_DIR)/"; fi; \
 	if [ -d "$$SUBDIR/plugins" ]; then cp -a "$$SUBDIR/plugins" "$(MT_WWW_DIR)/"; fi
-	@mkdir -p "$(MT_WWW_DIR)/mt-static" "$(MT_WWW_DIR)/plugins"
+	@mkdir -p "$(MT_WWW_DIR)/mt-static/support" "$(MT_WWW_DIR)/plugins"
+	@chmod 0777 "$(MT_WWW_DIR)/mt-static/support"
 	@touch "$(MT_WWW_DIR)/mt-static/.gitkeep" "$(MT_WWW_DIR)/plugins/.gitkeep"
 	@rm -rf "$(MT_EXTRACT_DIR)"
 	@echo "Done: $(MT_WWW_DIR)/mt-static and $(MT_WWW_DIR)/plugins"

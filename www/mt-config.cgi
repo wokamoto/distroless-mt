@@ -2,6 +2,8 @@ AdminCGIPath         /mt/
 CGIPath              /mt/
 StaticWebPath        /mt-static/
 StaticFilePath       /var/www/movabletype/mt-static/
+SupportDirectoryURL  /mt-static/support/
+SupportDirectoryPath /var/www/movabletype/mt-static/support
 
 ObjectDriver         DBI::mysql
 # DB connection settings are provided through MT_CONFIG_* system environment variables.

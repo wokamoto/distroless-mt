@@ -9,7 +9,7 @@
 ## 技術スタック
 - Nginx（`bin/webserver/nginx/Dockerfile`）
 - Apache HTTP Server（`bin/webserver/httpd/Dockerfile`）
-- Movable Type + Starman（`bin/movabletype/Dockerfile`）
+- Movable Type + Apache CGI + Starman（`bin/movabletype/Dockerfile`）
 - MySQL（`bin/database/mysql80/Dockerfile` または `bin/database/mysql84/Dockerfile`）
 - phpMyAdmin（`phpmyadmin`）
 - Mailpit（`axllent/mailpit`）
@@ -25,6 +25,7 @@
 - `www/movabletype/mt-templates`: Movable Type 用テンプレートのマウント先
 - `config/nginx/nginx.conf`: イメージへコピーされる Nginx 全体設定
 - `config/nginx/conf.d/default.conf`: Nginx のサイト設定とリバースプロキシ設定（`/mt/` と `/mt-static/`）
+- `config/movabletype/httpd.conf`: `movabletype` コンテナ内で CGI 処理と PSGI プロキシを行う Apache 設定
 - `config/httpd/httpd.conf`: イメージへコピーされる Apache 全体設定
 - `config/httpd/conf.d/default.conf`: Apache の vhost 設定（`/mt/` プロキシと `/mt-static` エイリアス）
 - `config/initdb/01-mysql-native-password.sh`: アプリ用ユーザーの認証方式を `mysql_native_password` に設定する DB 初期化スクリプト
@@ -34,7 +35,7 @@
 /var/www/
 ├── html
 │   └── htdocs            # Web ドキュメントルート
-├── movabletype           # Web サーバーから /mt としてリバースプロキシ
+├── movabletype           # アプリ実行環境。Apache が CGI を処理し、PSGI を Starman にプロキシ
 │   ├── mt-static         # /mt-static として配信
 │   ├── mt-templates
 │   ├── plugins
@@ -72,6 +73,11 @@
 - `movabletype` サービスには Movable Type の `MT_CONFIG_DATABASE`、`MT_CONFIG_DBUSER`、`MT_CONFIG_DBPASSWORD`、`MT_CONFIG_DBHOST` 環境変数で DB 接続情報を渡します。
 - `www/mt-config.cgi` には `Database`、`DBUser`、`DBPassword`、`DBHost` を記載しません。Compose が `.env` の `MYSQL_DATABASE`、`MYSQL_USER`、`MYSQL_PASSWORD` を対応する `MT_CONFIG_*` の値として渡します。
 
+サポートディレクトリは次のとおりです。
+- `www/mt-config.cgi` で `SupportDirectoryPath` を `/var/www/movabletype/mt-static/support`、`SupportDirectoryURL` を `/mt-static/support/` に設定します。
+- `movabletype` は `MT_STATIC_DIR` を read-write でマウントし、CGI がサポートファイルを書き込めるようにします。`webserver` は同じディレクトリを read-only でマウントして静的ファイルとして配信します。
+- `make prepare-mt` は `www/movabletype/mt-static/support` を作成し、コンテナ内の Web サーバーユーザーが書き込める権限を設定します。
+
 ### Makefile ターゲット
 - `make prepare-mt`: MT zip から `mt-static` と `plugins` を `www/movabletype/` に展開
 - `make build`: `prepare-mt` 実行後に `docker compose build`
@@ -98,7 +104,8 @@ Fargate 向け設定でイメージをビルドする場合:
 `DEPLOY_ENV=fargate` のとき:
 - webserver -> movabletype の上流通信先が `127.0.0.1:5000` に切り替わります（同一 ECS タスク/サイドカー想定）
 - `/var/log/nginx/access.log` と `/var/log/httpd/access.log` は `STDOUT` に出力されます
-- `/var/log/nginx/error.log`、`/var/log/httpd/error.log`、`/var/log/movabletype/error.log` は `STDERR` に出力されます
+- `/var/log/movabletype/httpd-access.log` は `STDOUT` に出力されます
+- `/var/log/nginx/error.log`、`/var/log/httpd/error.log`、`/var/log/movabletype/httpd-error.log`、`/var/log/movabletype/error.log` は `STDERR` に出力されます
 
 ### Mailpit を使ったメール送信テスト
 このスタック内コンテナから同梱 Mailpit へ送信する設定は次のとおりです。
@@ -115,7 +122,8 @@ Fargate 向け設定でイメージをビルドする場合:
 
 ## 環境変数メモ
 - DB 認証情報は `.env` から `database` と `phpmyadmin` に注入され、`movabletype` には同じ接続値を Movable Type の `MT_CONFIG_*` 環境変数として渡します。
-- `movabletype` は `MT_CONFIG_FILE`、`MT_LOG_DIR`、テンプレート/プラグインの bind mount を利用します。
+- `movabletype` は `MT_CONFIG_FILE`、`MT_STATIC_DIR`、`MT_LOG_DIR`、テンプレート/プラグインの bind mount を利用します。
+- `movabletype` 内では Apache がポート `5000` で待ち受けます。`/mt/*.cgi` は CGI として実行し、それ以外の `/mt/` は `127.0.0.1:5001` の Starman にプロキシします。
 - `TIME_ZONE` は Web/DB イメージ向けの任意ビルド引数で、Dockerfile の既定値は `Asia/Tokyo` です。
 - `DEPLOY_ENV` は webserver/movabletype イメージ向けの任意ビルド引数で、既定値は `local` です。
 - MySQL と Mailpit のデータは named volume（`dbdata`、`mailpitdata`）に保存されます。
