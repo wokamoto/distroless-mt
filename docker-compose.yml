@@ -31,6 +31,8 @@ services:
       MT_CONFIG_DBUSER: ${MYSQL_USER}
       MT_CONFIG_DBPASSWORD: ${MYSQL_PASSWORD}
       MT_CONFIG_DBHOST: database
+      MT_CONFIG_SMTPSERVER: mail
+      MT_CONFIG_SMTPPORT: 1025
     extra_hosts:
       - "host.docker.internal:host-gateway"
   webserver:

@@ -113,6 +113,7 @@ To send mail to the bundled Mailpit service from containers in this stack:
 - Port: `1025`
 - SMTP auth: disabled
 - TLS: disabled
+- `movabletype` receives `SMTPServer` and `SMTPPort` as `MT_CONFIG_SMTPSERVER` and `MT_CONFIG_SMTPPORT` environment variables.
 
 ### HTTPS (optional)
 - Put `cert.pem` and `cert-key.pem` in `config/ssl`.

@@ -26,6 +26,9 @@ DirUmask             0002
 AdminScript    admin
 ImageDriver    ImageMagick
 
+MailTransfer smtp
+# SMTP server settings are provided through MT_CONFIG_* system environment variables.
+
 PreviewInNewWindow 0
 AutoChangeImageQuality 0
 

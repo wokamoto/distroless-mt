@@ -113,6 +113,7 @@ Fargate 向け設定でイメージをビルドする場合:
 - Port: `1025`
 - SMTP 認証: 無効
 - TLS: 無効
+- `movabletype` には `SMTPServer` と `SMTPPort` を `MT_CONFIG_SMTPSERVER`、`MT_CONFIG_SMTPPORT` 環境変数として渡します。
 
 ### HTTPS（任意）
 - `config/ssl` に `cert.pem` と `cert-key.pem` を配置します。
