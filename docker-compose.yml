@@ -25,10 +25,10 @@ services:
       PERL5LIB: /var/www/movabletype/lib
       PID: /tmp/mt.pid
       SOCKET: /tmp/mt.sock
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-      MYSQL_HOST: database
+      MT_CONFIG_DATABASE: ${MYSQL_DATABASE}
+      MT_CONFIG_DBUSER: ${MYSQL_USER}
+      MT_CONFIG_DBPASSWORD: ${MYSQL_PASSWORD}
+      MT_CONFIG_DBHOST: database
     extra_hosts:
       - "host.docker.internal:host-gateway"
   webserver:

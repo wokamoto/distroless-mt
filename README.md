@@ -69,6 +69,8 @@ Default ports in `.env`:
 Database access:
 - The `database` service is exposed only inside the Compose network (`expose: 3306`).
 - Use service name `database:3306` from other containers, or phpMyAdmin from the host.
+- The `movabletype` service receives DB connection settings through Movable Type's `MT_CONFIG_DATABASE`, `MT_CONFIG_DBUSER`, `MT_CONFIG_DBPASSWORD`, and `MT_CONFIG_DBHOST` environment variables.
+- `www/mt-config.cgi` intentionally omits `Database`, `DBUser`, `DBPassword`, and `DBHost`; Compose maps `MYSQL_DATABASE`, `MYSQL_USER`, and `MYSQL_PASSWORD` from `.env` into the corresponding `MT_CONFIG_*` values.
 
 ### Makefile Targets
 - `make prepare-mt`: extract `mt-static` and `plugins` from MT zip into `www/movabletype/`
@@ -112,7 +114,7 @@ To send mail to the bundled Mailpit service from containers in this stack:
 - Access `https://localhost:8443`.
 
 ## Environment Notes
-- DB credentials are injected through `.env` into `movabletype`, `database`, and `phpmyadmin` services.
+- DB credentials are injected through `.env` into `database` and `phpmyadmin`; `movabletype` receives the same connection values as Movable Type `MT_CONFIG_*` environment variables.
 - `movabletype` uses `MT_CONFIG_FILE`, `MT_LOG_DIR`, and template/plugin bind mounts from `.env`/Compose defaults.
 - `TIME_ZONE` is an optional build argument for web/database images and defaults to `Asia/Tokyo` in Dockerfiles.
 - `DEPLOY_ENV` is an optional build argument for webserver/movabletype images and defaults to `local`.

@@ -4,10 +4,7 @@ StaticWebPath        /mt-static/
 StaticFilePath       /var/www/movabletype/mt-static/
 
 ObjectDriver         DBI::mysql
-Database             docker
-DBUser               docker
-DBPassword           docker
-DBHost               database
+# DB connection settings are provided through MT_CONFIG_* system environment variables.
 
 # PID file: use /tmp so distroless (non-root) can write; Starman --pid must match
 PIDFilePath          /var/www/mt.pid

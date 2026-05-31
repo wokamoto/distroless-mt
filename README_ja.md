@@ -69,6 +69,8 @@
 データベース接続は次のとおりです。
 - `database` サービスは Compose 内部ネットワークのみ公開（`expose: 3306`）です。
 - 他コンテナからは `database:3306` で接続し、ホストからは phpMyAdmin を利用します。
+- `movabletype` サービスには Movable Type の `MT_CONFIG_DATABASE`、`MT_CONFIG_DBUSER`、`MT_CONFIG_DBPASSWORD`、`MT_CONFIG_DBHOST` 環境変数で DB 接続情報を渡します。
+- `www/mt-config.cgi` には `Database`、`DBUser`、`DBPassword`、`DBHost` を記載しません。Compose が `.env` の `MYSQL_DATABASE`、`MYSQL_USER`、`MYSQL_PASSWORD` を対応する `MT_CONFIG_*` の値として渡します。
 
 ### Makefile ターゲット
 - `make prepare-mt`: MT zip から `mt-static` と `plugins` を `www/movabletype/` に展開
@@ -112,7 +114,7 @@ Fargate 向け設定でイメージをビルドする場合:
 - `https://localhost:8443` にアクセスします。
 
 ## 環境変数メモ
-- DB 認証情報は `.env` から `movabletype`、`database`、`phpmyadmin` に注入されます。
+- DB 認証情報は `.env` から `database` と `phpmyadmin` に注入され、`movabletype` には同じ接続値を Movable Type の `MT_CONFIG_*` 環境変数として渡します。
 - `movabletype` は `MT_CONFIG_FILE`、`MT_LOG_DIR`、テンプレート/プラグインの bind mount を利用します。
 - `TIME_ZONE` は Web/DB イメージ向けの任意ビルド引数で、Dockerfile の既定値は `Asia/Tokyo` です。
 - `DEPLOY_ENV` は webserver/movabletype イメージ向けの任意ビルド引数で、既定値は `local` です。
